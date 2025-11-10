@@ -38,7 +38,9 @@ jobs:
     - name: Install Buildozer
       run: |
         pip install buildozer
-        
+     - name: Install Cython
+      run: |
+        pip install cython 
     - name: Build APK with Buildozer
       run: |
         buildozer android debug
@@ -49,3 +51,4 @@ jobs:
         name: 24点游戏-APK
         path: bin/*.apk
         retention-days: 7
+
