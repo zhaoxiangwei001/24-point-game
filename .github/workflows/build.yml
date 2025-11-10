@@ -22,7 +22,7 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        sudo apt install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
         
     - name: Install Buildozer
       run: |
@@ -39,4 +39,7 @@ jobs:
         path: bin/*.apk
         retention-days: 7
 
+
+
+/home/zxvdxt/kivy_project/bin/python /home/zxvdxt/kivy_project/bin/24=.py
 
