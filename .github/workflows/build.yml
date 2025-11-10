@@ -33,7 +33,7 @@ jobs:
         buildozer android debug
       
     - name: Upload APK artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: 24点游戏-APK
         path: bin/*.apk
