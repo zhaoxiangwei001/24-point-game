@@ -8,11 +8,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -22,7 +22,18 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
+        sudo apt install -y \
+          git \
+          zip \
+          unzip \
+          openjdk-17-jdk \
+          autoconf \
+          libtool \
+          pkg-config \
+          zlib1g-dev \
+          cmake \
+          libffi-dev \
+          libssl-dev
         
     - name: Install Buildozer
       run: |
@@ -38,8 +49,3 @@ jobs:
         name: 24点游戏-APK
         path: bin/*.apk
         retention-days: 7
-
-
-
-/home/zxvdxt/kivy_project/bin/python /home/zxvdxt/kivy_project/bin/24=.py
-
