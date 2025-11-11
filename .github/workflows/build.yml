@@ -2,9 +2,7 @@ name: Build APK
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -35,12 +33,10 @@ jobs:
           libffi-dev \
           libssl-dev
         
-    - name: Install Buildozer
+    - name: Install Buildozer and dependencies
       run: |
-        pip install buildozer
-     - name: Install Cython
-      run: |
-        pip install cython 
+        pip install buildozer cython
+        
     - name: Build APK with Buildozer
       run: |
         buildozer android debug
