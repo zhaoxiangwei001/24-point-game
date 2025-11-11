@@ -24,6 +24,7 @@ jobs:
           git \
           zip \
           unzip \
+          wget \
           openjdk-17-jdk \
           autoconf \
           libtool \
@@ -36,18 +37,27 @@ jobs:
     - name: Setup Android SDK
       run: |
         # 创建 Android SDK 目录
-        mkdir -p ~/.android
-        touch ~/.android/repositories.cfg
+        mkdir -p ~/android-sdk
+        cd ~/android-sdk
         
-        # 接受所有 Android SDK 许可证
-        yes | sdkmanager --licenses
-        
-        # 安装必要的 Android 平台和构建工具
-        sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0" "cmdline-tools;latest"
+        # 下载 Android 命令行工具
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip
+        unzip -q commandlinetools-linux-8512546_latest.zip
+        rm commandlinetools-linux-8512546_latest.zip
         
         # 设置环境变量
-        echo "ANDROID_SDK_ROOT=~/.android-sdk" >> $GITHUB_ENV
-        echo "ANDROID_HOME=~/.android-sdk" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=~/android-sdk" >> $GITHUB_ENV
+        echo "ANDROID_HOME=~/android-sdk" >> $GITHUB_ENV
+        echo "PATH=$PATH:~/android-sdk/cmdline-tools/bin" >> $GITHUB_ENV
+        
+    - name: Accept Android SDK licenses
+      run: |
+        # 接受许可证
+        yes | ~/android-sdk/cmdline-tools/bin/sdkmanager --licenses
+        
+    - name: Install Android platform and build tools
+      run: |
+        ~/android-sdk/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
         
     - name: Install Buildozer and dependencies
       run: |
