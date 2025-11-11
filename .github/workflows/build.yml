@@ -34,30 +34,15 @@ jobs:
           libffi-dev \
           libssl-dev
         
-    - name: Setup Android SDK
+    - name: Setup Android environment
       run: |
-        # 创建 Android SDK 目录
-        mkdir -p ~/android-sdk
-        cd ~/android-sdk
+        # 创建必要的目录
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
         
-        # 下载 Android 命令行工具
-        wget -q https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip
-        unzip -q commandlinetools-linux-8512546_latest.zip
-        rm commandlinetools-linux-8512546_latest.zip
-        
-        # 设置环境变量
-        echo "ANDROID_SDK_ROOT=~/android-sdk" >> $GITHUB_ENV
-        echo "ANDROID_HOME=~/android-sdk" >> $GITHUB_ENV
-        echo "PATH=$PATH:~/android-sdk/cmdline-tools/bin" >> $GITHUB_ENV
-        
-    - name: Accept Android SDK licenses
-      run: |
-        # 接受许可证
-        yes | ~/android-sdk/cmdline-tools/bin/sdkmanager --licenses
-        
-    - name: Install Android platform and build tools
-      run: |
-        ~/android-sdk/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
+        # 设置环境变量强制接受许可证
+        echo "BUILDODER_ANDROID_ACCEPT_SDK_LICENSES=1" >> $GITHUB_ENV
+        echo "CI=1" >> $GITHUB_ENV
         
     - name: Install Buildozer and dependencies
       run: |
@@ -65,7 +50,13 @@ jobs:
         
     - name: Build APK with Buildozer
       run: |
-        buildozer android debug
+        # 设置 CI 环境变量
+        export CI=1
+        export BUILDODER_ANDROID_ACCEPT_SDK_LICENSES=1
+        
+        # 清理并构建
+        buildozer android clean
+        buildozer -v android debug
       
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
