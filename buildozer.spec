@@ -1,24 +1,18 @@
 [app]
 title = 24点游戏
-package.name = point24
-package.domain = org.zxvdxt
-source.dir = .
-source.main = main.py
-source.include_exts = py,png,jpg,kv
-requirements = python3,kivy
-version = 1.0
-orientation = portrait
+package.name = twentyfourgame
+package.domain = org.example
 
 [buildozer]
 log_level = 2
 
-[android]
-api = 28
-minapi = 21
-sdk = 20
-ndk = 19c
-permissions = INTERNET
-android.accept_sdk_license = True
+# Android 配置
+android.api = 33
+android.minapi = 21
+android.sdk = 27
+android.ndk = 25b
+android.allow_backup = True
+android.arch = arm64-v8a
 
-[ios]
-[macos]
+# 依赖项
+requirements = python3,kivy
