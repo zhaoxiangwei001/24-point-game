@@ -10,7 +10,7 @@ version = 1.0
 orientation = portrait
 
 [buildozer]
-log_level = 1
+log_level = 2
 
 [android]
 api = 28
