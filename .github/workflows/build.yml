@@ -3,68 +3,56 @@ name: Build APK
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
-        
+
     - name: Install system dependencies
       run: |
-        sudo apt update
-        sudo apt install -y \
+        sudo apt-get update
+        sudo apt-get install -y \
           git \
           zip \
           unzip \
-          openjdk-17-jdk \
+          openjdk-11-jdk \
+          python3-pip \
           autoconf \
           libtool \
           pkg-config \
           zlib1g-dev \
+          libncurses5-dev \
+          libncursesw5-dev \
+          libtinfo5 \
           cmake \
           libffi-dev \
           libssl-dev
-        
-    - name: Setup Android environment
+
+    - name: Install Buildozer
       run: |
-        # 创建必要的目录
-        mkdir -p ~/.android
-        touch ~/.android/repositories.cfg
-        
-        # 设置环境变量强制接受许可证
-        echo "BUILDODER_ANDROID_ACCEPT_SDK_LICENSES=1" >> $GITHUB_ENV
-        echo "CI=1" >> $GITHUB_ENV
-        
-        # 检查Android SDK和NDK版本
-        echo "Android SDK路径: $ANDROID_SDK_ROOT"
-        echo "Android NDK路径: $ANDROID_NDK_HOME"
-        sdkmanager --list || echo "sdkmanager不可用，但继续构建"
-        
-    - name: Install Buildozer and dependencies
+        pip install --upgrade pip
+        pip install buildozer
+        pip install cython
+
+    - name: Build with Buildozer
       run: |
-        pip install buildozer cython
-        
-    - name: Build APK with Buildozer
-      run: |
-        # 设置 CI 环境变量
-        export CI=1
-        export BUILDODER_ANDROID_ACCEPT_SDK_LICENSES=1
-        
-        # 清理并构建，使用详细日志
-        buildozer android clean
-        buildozer -v --log_level 2 android debug
-      
-    - name: Upload APK artifact
+        buildozer -v android debug
+      env:
+        BUILDODER_ANDROID_ACCEPT_SDK_LICENSES: 1
+
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: 24点游戏-APK
+        name: app-apk
         path: bin/*.apk
-        retention-days: 7
