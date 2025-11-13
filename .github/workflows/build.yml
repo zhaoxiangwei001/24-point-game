@@ -24,7 +24,6 @@ jobs:
           git \
           zip \
           unzip \
-          wget \
           openjdk-17-jdk \
           autoconf \
           libtool \
@@ -44,6 +43,11 @@ jobs:
         echo "BUILDODER_ANDROID_ACCEPT_SDK_LICENSES=1" >> $GITHUB_ENV
         echo "CI=1" >> $GITHUB_ENV
         
+        # 检查Android SDK和NDK版本
+        echo "Android SDK路径: $ANDROID_SDK_ROOT"
+        echo "Android NDK路径: $ANDROID_NDK_HOME"
+        sdkmanager --list || echo "sdkmanager不可用，但继续构建"
+        
     - name: Install Buildozer and dependencies
       run: |
         pip install buildozer cython
@@ -54,9 +58,9 @@ jobs:
         export CI=1
         export BUILDODER_ANDROID_ACCEPT_SDK_LICENSES=1
         
-        # 清理并构建
+        # 清理并构建，使用详细日志
         buildozer android clean
-        buildozer -v android debug
+        buildozer -v --log_level 2 android debug
       
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
