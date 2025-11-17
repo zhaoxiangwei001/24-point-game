@@ -61,13 +61,8 @@ jobs:
         PATH: $PATH:$ANDROID_HOME/build-tools/34.0.0
 
     - name: Upload APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: generated-apk
         path: bin/*.apk
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-apk
-        path: bin/*.apk
+        retention-days: 7
