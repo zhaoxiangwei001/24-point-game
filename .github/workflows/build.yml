@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04  # 使用 Ubuntu 22.04 避免兼容性问题
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout code
@@ -23,39 +23,48 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          git \
-          zip \
-          unzip \
+          git zip unzip \
           openjdk-11-jdk \
           python3-pip \
-          autoconf \
-          libtool \
-          pkg-config \
+          autoconf libtool pkg-config \
           zlib1g-dev \
-          libncurses5-dev \
-          libncursesw5-dev \
-          cmake \
-          libffi-dev \
-          libssl-dev \
-          curl
+          libncurses5-dev libncursesw5-dev \
+          cmake libffi-dev libssl-dev curl
 
-    - name: Install Buildozer and dependencies
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+
+    - name: Install Android tools
+      run: |
+        yes | sdkmanager --licenses
+        yes | sdkmanager "build-tools;34.0.0"
+        yes | sdkmanager "platforms;android-34"
+        yes | sdkmanager "platform-tools"
+        yes | sdkmanager "cmdline-tools;latest"
+
+    - name: Verify Android tools
+      run: |
+        $ANDROID_HOME/build-tools/34.0.0/aidl --version
+        which aidl
+
+    - name: Install Buildozer
       run: |
         pip install --upgrade pip
-        pip install buildozer
-        pip install cython
-        pip install kivy
-
-    - name: Setup Android SDK and NDK
-      run: |
-        mkdir -p ~/.android
-        touch ~/.android/repositories.cfg
+        pip install buildozer cython kivy
 
     - name: Build with Buildozer
       run: |
+        buildozer init
         buildozer -v android debug
       env:
         BUILDODER_ANDROID_ACCEPT_SDK_LICENSES: 1
+        PATH: $PATH:$ANDROID_HOME/build-tools/34.0.0
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: generated-apk
+        path: bin/*.apk
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
