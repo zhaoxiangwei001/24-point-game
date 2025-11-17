@@ -34,13 +34,25 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v2
 
-    - name: Install Android tools
+    - name: Accept Android licenses
       run: |
+        mkdir -p "$ANDROID_HOME/licenses"
+        echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
+        echo "84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
         yes | sdkmanager --licenses
-        # 使用较旧的稳定版本避免兼容性问题
+
+    - name: Install Android tools (older stable version)
+      run: |
         yes | sdkmanager "build-tools;30.0.3"
         yes | sdkmanager "platforms;android-31"
         yes | sdkmanager "platform-tools"
+        yes | sdkmanager "cmdline-tools;latest"
+
+    - name: Verify Android tools installation
+      run: |
+        echo "Android SDK path: $ANDROID_HOME"
+        ls -la $ANDROID_HOME/build-tools/
+        $ANDROID_HOME/build-tools/30.0.3/aidl --version || echo "AIDL check failed, but continuing..."
 
     - name: Install Buildozer and dependencies
       run: |
