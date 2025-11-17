@@ -34,34 +34,26 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v2
 
-    - name: Install specific Android Build Tools version
+    - name: Install Android tools
       run: |
         yes | sdkmanager --licenses
         # 使用较旧的稳定版本避免兼容性问题
         yes | sdkmanager "build-tools;30.0.3"
         yes | sdkmanager "platforms;android-31"
         yes | sdkmanager "platform-tools"
-        yes | sdkmanager "cmake;3.18.1"
 
-    - name: Install Buildozer with specific version
+    - name: Install Buildozer and dependencies
       run: |
         pip install --upgrade pip
-        pip install buildozer==1.2.0
-        pip install cython==0.29.28
+        pip install buildozer
+        pip install cython
         pip install kivy
 
-    - name: Initialize Buildozer
-      run: |
-        buildozer init
-
-    - name: Build with Buildozer (debug)
+    - name: Build with Buildozer
       run: |
         buildozer -v android debug
       env:
         BUILDODER_ANDROID_ACCEPT_SDK_LICENSES: 1
-        # 设置 Android SDK 路径
-        ANDROIDSDK: ${{ env.ANDROID_HOME }}
-        ANDROIDNDK: ${{ env.ANDROID_HOME }}/ndk
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
