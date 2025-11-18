@@ -14,53 +14,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-
-    - name: Install system dependencies
+    - name: Build using Buildozer Docker
       run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          git zip unzip \
-          openjdk-11-jdk \
-          python3-pip \
-          autoconf libtool pkg-config \
-          zlib1g-dev \
-          libncurses5-dev libncursesw5-dev \
-          cmake libffi-dev libssl-dev curl
-
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
-
-    - name: Install specific Android build tools and platform
-      run: |
-        yes | sdkmanager "build-tools;30.0.3"
-        yes | sdkmanager "platforms;android-31"
-
-    - name: Update buildozer.spec with SDK path and build tools version
-      run: |
-        # 获取Android SDK路径
-        SDK_PATH=$ANDROID_HOME
-
-        # 如果buildozer.spec不存在，则初始化
-        if [ ! -f buildozer.spec ]; then
-          buildozer init
-        fi
-
-        # 更新sdk_path和sdk_build_tools
-        sed -i "s|^# android.sdk_path = .*|android.sdk_path = $SDK_PATH|" buildozer.spec
-        sed -i "s|^# android.sdk_build_tools = .*|android.sdk_build_tools = 30.0.3|" buildozer.spec
-
-    - name: Install Buildozer
-      run: |
-        pip install --upgrade pip
-        pip install buildozer cython kivy
-
-    - name: Build with Buildozer
-      run: |
-        buildozer -v android debug
+        # 使用 Buildozer 官方 Docker 镜像，它包含了所有必要的工具
+        docker run --rm \
+          --volume "$(pwd)":/home/user/hostcwd \
+          --volume "${HOME}/.buildozer":/home/user/.buildozer \
+          --workdir /home/user/hostcwd \
+          buildozer/buildozer \
+          -v android debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
