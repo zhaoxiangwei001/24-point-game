@@ -17,8 +17,8 @@ jobs:
     - name: Build with Buildozer Action
       uses: ArtemSBulgakov/buildozer-action@v1
       with:
-        buildozer-version: stable
-        target: android debug
+        buildozer_version: stable
+        args: android debug
         workdir: .
         
     - name: Upload APK
