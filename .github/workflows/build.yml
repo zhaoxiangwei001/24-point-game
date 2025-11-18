@@ -14,14 +14,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Build using Buildozer Docker
+    - name: Build using Buildozer Docker image
       run: |
-        # 使用 Buildozer 官方 Docker 镜像，它包含了所有必要的工具
+        # 使用 Kivy 官方 Buildozer Docker 镜像
         docker run --rm \
           --volume "$(pwd)":/home/user/hostcwd \
           --volume "${HOME}/.buildozer":/home/user/.buildozer \
           --workdir /home/user/hostcwd \
-          buildozer/buildozer \
+          kivy/buildozer \
           -v android debug
 
     - name: Upload APK
