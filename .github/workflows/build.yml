@@ -29,40 +29,76 @@ jobs:
           autoconf libtool pkg-config \
           zlib1g-dev \
           libncurses5-dev libncursesw5-dev \
-          cmake libffi-dev libssl-dev curl
+          cmake libffi-dev libssl-dev curl wget
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
-
-    - name: Accept Android licenses
+    - name: Download and setup Android SDK
       run: |
+        # 下载命令行工具
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip
+        mkdir -p android-sdk
+        unzip -q commandlinetools-linux-8512546_latest.zip -d android-sdk
+        mkdir -p android-sdk/cmdline-tools/latest
+        mv android-sdk/cmdline-tools/* android-sdk/cmdline-tools/latest/
+        
+        # 设置环境变量
+        echo "ANDROID_HOME=$PWD/android-sdk" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=$PWD/android-sdk" >> $GITHUB_ENV
+        echo "PATH=$PWD/android-sdk/cmdline-tools/latest/bin:$PWD/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
+
+    - name: Accept Android licenses and install tools
+      run: |
+        # 预先创建许可证文件
         mkdir -p "$ANDROID_HOME/licenses"
         echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
         echo "84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
-        yes | sdkmanager --licenses
+        
+        # 安装必要的工具
+        yes | sdkmanager --sdk_root=$ANDROID_HOME "build-tools;30.0.3"
+        yes | sdkmanager --sdk_root=$ANDROID_HOME "platforms;android-31"
+        yes | sdkmanager --sdk_root=$ANDROID_HOME "platform-tools"
 
-    - name: Install Android tools (older stable version)
+    - name: Verify Android tools
       run: |
-        yes | sdkmanager "build-tools;30.0.3"
-        yes | sdkmanager "platforms;android-31"
-        yes | sdkmanager "platform-tools"
-        yes | sdkmanager "cmdline-tools;latest"
+        echo "=== Android SDK Contents ==="
+        ls -la $ANDROID_HOME/
+        echo "=== Build Tools Contents ==="
+        ls -la $ANDROID_HOME/build-tools/30.0.3/
+        echo "=== AIDL Check ==="
+        $ANDROID_HOME/build-tools/30.0.3/aidl --version || echo "AIDL check failed"
 
-    - name: Verify Android tools installation
-      run: |
-        echo "Android SDK path: $ANDROID_HOME"
-        ls -la $ANDROID_HOME/build-tools/
-        $ANDROID_HOME/build-tools/30.0.3/aidl --version || echo "AIDL check failed, but continuing..."
-
-    - name: Install Buildozer and dependencies
+    - name: Install Buildozer
       run: |
         pip install --upgrade pip
-        pip install buildozer
-        pip install cython
-        pip install kivy
+        pip install buildozer cython kivy
 
-    - name: Build with Buildozer
+    - name: Create buildozer configuration with custom SDK path
       run: |
+        # 如果不存在 buildozer.spec，创建它
+        if [ ! -f buildozer.spec ]; then
+          buildozer init
+        fi
+        
+        # 备份原始文件
+        cp buildozer.spec buildozer.spec.backup
+        
+        # 使用 sed 更新 SDK 路径
+        sed -i "s|# android.sdk_path = .*|android.sdk_path = $ANDROID_HOME|" buildozer.spec
+        sed -i "s|# android.ndk_path = .*|# android.ndk_path = |" buildozer.spec
+        
+        echo "=== Modified buildozer.spec ==="
+        grep "android.sdk_path" buildozer.spec
+
+    - name: Build with Buildozer using custom SDK
+      run: |
+        # 设置环境变量，强制 Buildozer 使用我们的 SDK
+        export ANDROIDSDK=$ANDROID_HOME
+        export ANDROID_HOME=$ANDROID_HOME
+        export ANDROID_SDK_ROOT=$ANDROID_HOME
+        
+        # 清理之前的构建
+        buildozer android clean
+        
+        # 开始构建
         buildozer -v android debug
       env:
         BUILDODER_ANDROID_ACCEPT_SDK_LICENSES: 1
