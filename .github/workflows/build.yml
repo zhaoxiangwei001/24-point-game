@@ -9,18 +9,62 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Build with Buildozer Action
-      uses: ArtemSBulgakov/buildozer-action@v1
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        buildozer_version: stable
-        args: android debug
-        workdir: .
+        python-version: '3.9'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          git zip unzip openjdk-11-jdk python3-pip \
+          autoconf libtool pkg-config zlib1g-dev \
+          libncurses5-dev libncursesw5-dev cmake \
+          libffi-dev libssl-dev curl
+
+    - name: Install Buildozer and dependencies
+      run: |
+        pip install --upgrade pip
+        pip install buildozer cython kivy
+
+    - name: Pre-configure environment
+      run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        echo "BUILDODER_ANDROID_ACCEPT_SDK_LICENSES=1" >> $GITHUB_ENV
+
+    - name: Build with Buildozer (with detailed output)
+      run: |
+        # 设置环境变量
+        export BUILDODER_ANDROID_ACCEPT_SDK_LICENSES=1
         
+        # 清理之前的构建
+        buildozer android clean || true
+        
+        # 开始构建，捕获详细输出
+        buildozer -v android debug 2>&1 | tee build_output.log
+        
+        # 检查构建结果
+        if [ $? -eq 0 ]; then
+          echo "Build successful!"
+          ls -la bin/ || echo "No bin directory created"
+        else
+          echo "Build failed. Showing diagnostic information:"
+          echo "=== Buildozer directory structure ==="
+          find ~/.buildozer -type d -name "build-tools" 2>/dev/null | head -5
+          echo "=== Looking for Android SDK ==="
+          find ~/.buildozer -name "android-sdk" -type d 2>/dev/null | head -5
+          echo "=== Last 30 lines of build output ==="
+          tail -30 build_output.log
+          exit 1
+        fi
+
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
