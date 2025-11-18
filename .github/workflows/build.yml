@@ -37,7 +37,10 @@ jobs:
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip
         mkdir -p android-sdk
         unzip -q commandlinetools-linux-8512546_latest.zip -d android-sdk
+        
+        # 修正目录结构 - 正确的方法
         mkdir -p android-sdk/cmdline-tools/latest
+        # 将解压的内容移动到正确位置
         mv android-sdk/cmdline-tools/* android-sdk/cmdline-tools/latest/
         
         # 设置环境变量
@@ -57,48 +60,19 @@ jobs:
         yes | sdkmanager --sdk_root=$ANDROID_HOME "platforms;android-31"
         yes | sdkmanager --sdk_root=$ANDROID_HOME "platform-tools"
 
-    - name: Verify Android tools
-      run: |
-        echo "=== Android SDK Contents ==="
-        ls -la $ANDROID_HOME/
-        echo "=== Build Tools Contents ==="
-        ls -la $ANDROID_HOME/build-tools/30.0.3/
-        echo "=== AIDL Check ==="
-        $ANDROID_HOME/build-tools/30.0.3/aidl --version || echo "AIDL check failed"
-
     - name: Install Buildozer
       run: |
         pip install --upgrade pip
         pip install buildozer cython kivy
 
-    - name: Create buildozer configuration with custom SDK path
-      run: |
-        # 如果不存在 buildozer.spec，创建它
-        if [ ! -f buildozer.spec ]; then
-          buildozer init
-        fi
-        
-        # 备份原始文件
-        cp buildozer.spec buildozer.spec.backup
-        
-        # 使用 sed 更新 SDK 路径
-        sed -i "s|# android.sdk_path = .*|android.sdk_path = $ANDROID_HOME|" buildozer.spec
-        sed -i "s|# android.ndk_path = .*|# android.ndk_path = |" buildozer.spec
-        
-        echo "=== Modified buildozer.spec ==="
-        grep "android.sdk_path" buildozer.spec
-
-    - name: Build with Buildozer using custom SDK
+    - name: Build with Buildozer
       run: |
         # 设置环境变量，强制 Buildozer 使用我们的 SDK
         export ANDROIDSDK=$ANDROID_HOME
         export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_SDK_ROOT=$ANDROID_HOME
         
-        # 清理之前的构建
-        buildozer android clean
-        
-        # 开始构建
+        # 构建
         buildozer -v android debug
       env:
         BUILDODER_ANDROID_ACCEPT_SDK_LICENSES: 1
